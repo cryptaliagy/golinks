@@ -24,7 +24,18 @@ def main():
         logging.debug(route_template.render(route=route, redirect=redirect))
         (route_template
             .stream(route=route, redirect=redirect)
-            .dump(f'/app/nginx/routes/{link}.conf'))
+            .dump(f'/app/nginx/routes/go_{link}.conf'))
+    
+    for service in links['services']:
+        redirect = links['services'][service]
+        route = ""
+        logging.debug(f'Data for {service} service')
+        logging.debug(f'Redirect url: {redirect}')
+        logging.info(f'Rendering link configuration for "{service}"')
+        logging.debug(route_template.render(route=route, redirect=redirect))
+        (route_template
+            .stream(route=route, redirect=redirect)
+            .dump(f'/app/nginx/routes/{service}.conf'))
     
 
 if __name__ == '__main__':
