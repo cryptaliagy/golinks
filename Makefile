@@ -12,25 +12,25 @@ help: ## Print this help message and exit
 .PHONY: build
 build:
 	docker-compose \
-		-f devstack/docker-compose.yml \
+		-f devstack/docker-compose.yaml \
 		build
 
 .PHONY: run-detach
 run-detach:
 	docker-compose \
-		-f devstack/docker-compose.yml \
+		-f devstack/docker-compose.yaml \
 		up -d
 
 .PHONY: run
 run:
 	docker-compose \
-		-f devstack/docker-compose.yml \
+		-f devstack/docker-compose.yaml \
 		up
 
 .PHONY: teardown
 teardown:
 	docker-compose \
-		-f devstack/docker-compose.yml \
+		-f devstack/docker-compose.yaml \
 		down --rmi all
 
 .PHONY: rebuild
