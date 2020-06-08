@@ -8,3 +8,7 @@ Inspired by golinks.io, this uses nginx to run a "personal" golink with redirect
 1. Save the file
 
 Whenever you want to add more golinks, simply edit the `data/links.yaml` file and save it- nginx will reload automatically!
+
+
+## Usage
+Once links have been configured, simply use your browser and point to `go/{url}` with `{url}` being one of the configured route names on the links file. For example, `go/golinks` should redirect to `https://www.golinks.io` and `go/golinks-personal` should redirect to this repository on the default links file.
