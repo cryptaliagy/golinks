@@ -10,29 +10,29 @@ help: ## Print this help message and exit
 		 }' $(MAKEFILE_LIST)
 
 .PHONY: build
-build:
+build: ## Build the docker containers
 	docker-compose \
 		-f devstack/docker-compose.yaml \
 		build
 
 .PHONY: run-detach
-run-detach:
+run-detach: ## Run the docker containers detached
 	docker-compose \
 		-f devstack/docker-compose.yaml \
 		up -d
 
 .PHONY: run
-run:
+run: ## Run docker containers attached to the terminal
 	docker-compose \
 		-f devstack/docker-compose.yaml \
 		up
 
 .PHONY: teardown
-teardown:
+teardown: ## Shuts down the containers (if running) and removes their images
 	docker-compose \
 		-f devstack/docker-compose.yaml \
 		down --rmi all
 
 .PHONY: rebuild
-rebuild:
+rebuild: ## Shuts down containers, removes images, and builds new images
 	make teardown && make build
