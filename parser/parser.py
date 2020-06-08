@@ -2,13 +2,12 @@ import yaml
 import os
 import sys
 import logging
-from dotenv import load_dotenv
 from jinja2 import Template
 
-logging.basicConfig(format="[%(levelname)s] %(message)s", level=logging.DEBUG)
+logging.basicConfig(format="[%(levelname)s] %(message)s", level=logging.INFO)
 
 def main():
-    logging.debug('Reading environment definition file')
+    logging.debug('Reading links definition file')
     with open('/app/data/links.yaml') as f:
         links = yaml.load(f, Loader=yaml.Loader)
     
