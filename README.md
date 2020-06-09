@@ -27,3 +27,24 @@ More `make` commands are available and can be seen in the terminal with `make he
 
 ## Usage
 Once links have been configured, simply use your browser and point to `go/{url}` with `{url}` being one of the configured route names on the links file. For example, `go/golinks` should redirect to `https://www.golinks.io` and `go/golinks-personal` should redirect to this repository on the default links file.
+
+## Live Demo
+Want to see golinks at work without hosting it locally? Try out the live demo, hosted on Google Cloud Platform! 
+
+1. Add the IP `35.208.15.228` to your hosts file for the domain `go/`
+1. Add the IP `35.208.15.228` to your hosts file for the domain `m/`
+1. Try out some golinks!
+
+Here is the list of golinks and their routes for the live test:
+
+```
+go/golinks              ->      golinks.io
+go/golinks-personal     ->      github.com/taliamax/golinks
+go/natalia              ->      natalia.dev
+go/mailme               ->      mailto:iam@natalia.dev
+go/gcp                  ->      cloud.google.com
+go/aws                  ->      aws.amazon.com
+go/azure                ->      azure.microsoft.com
+go/pydocs               ->      docs.python.org/3
+m/                      ->      mail.google.com
+```
