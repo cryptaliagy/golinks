@@ -1,3 +1,0 @@
-location /{{ route }} {
-    return 301 {{ redirect }};
-}
