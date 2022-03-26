@@ -5,7 +5,7 @@ import dotenv
 
 dotenv.load_dotenv()
 
-BASE_URL = 'http://localhost'
+BASE_URL = os.getenv('GOLINKS_HOST')
 SECRET_KEY = os.getenv('GOLINKS_SECRET_KEY')
 HEADERS = {'Authorization': f'Bearer {SECRET_KEY}'}
 
@@ -30,7 +30,7 @@ def get_all() -> list:
     Gets all the links from the shortener.
     :return: A list of all the links.
     """
-    response = requests.get(f'{BASE_URL}/all', headers=HEADERS)
+    response = requests.get(f'{BASE_URL}/route/all', headers=HEADERS)
 
     if response.status_code != 200:
         raise ValueError('Error: {}'.format(response.status_code))

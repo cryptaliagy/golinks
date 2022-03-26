@@ -32,8 +32,9 @@ var serverCmd = &cobra.Command{
 	Short: "Starts up the redirect server",
 	Long:  `Starts up the GoLinks redirect server.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		godotenv.Load()
 		cmd.Flags().Parse(args)
+
+		godotenv.Load(cmd.Flag("env-file").Value.String())
 		config = serverConfig{
 			Port:    cmd.Flag("port").Value.String(),
 			IsDebug: cmd.Flag("debug").Value.String() == "true",

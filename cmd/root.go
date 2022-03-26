@@ -81,6 +81,9 @@ func init() {
 	rootCmd.PersistentFlags().
 		String("database", cliConstants.dbFile, "The database to use")
 
+	rootCmd.PersistentFlags().
+		StringP("env-file", "e", "", "path to .env file")
+
 }
 
 func addRoute(link string, url string) error {
