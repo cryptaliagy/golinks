@@ -8,4 +8,4 @@ RUN go get .
 
 RUN go build -o /app/app .
 
-CMD ["/app/app"]
+CMD /app/app server --port 80
