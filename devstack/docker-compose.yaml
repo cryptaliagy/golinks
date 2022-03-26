@@ -1,23 +1,14 @@
 version: '3.5'
 
 services:
-  parser:
+  golinks:
     build:
       context: ..
-      dockerfile: devstack/parser.dockerfile
-    image: parser
-    volumes:
-      - "../nginx:/app/nginx"
-      - "../data:/app/data"
-  
-  router:
-    build:
-      context: ..
-      dockerfile: devstack/router.dockerfile
-    image: router
+      dockerfile: devstack/Dockerfile
+    image: golinks
     ports:
       - "80:80"
-      - "443:443"
-    network_mode: bridge
     volumes:
-      - "../nginx:/etc/nginx"
+      - ../confs:/app/confs
+    env_file:
+      - ../.env

@@ -32,7 +32,3 @@ teardown: ## Shuts down the containers (if running) and removes their images
 	docker-compose \
 		-f devstack/docker-compose.yaml \
 		down --rmi all
-
-.PHONY: rebuild
-rebuild: ## Shuts down containers, removes images, and builds new images
-	make teardown && make build
