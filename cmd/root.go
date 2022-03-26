@@ -79,7 +79,7 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.PersistentFlags().
-		StringP("database", "d", cliConstants.dbFile, "The database to use")
+		String("database", cliConstants.dbFile, "The database to use")
 
 }
 
