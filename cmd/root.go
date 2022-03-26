@@ -42,13 +42,15 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+	rootCmd.ParseFlags(os.Args)
 	cliConstants.dbFile = rootCmd.Flag("database").Value.String()
+
+	log.Println("Using database", cliConstants.dbFile)
 	cliConstants.db, err = gorm.Open(
 		sqlite.Open(cliConstants.dbFile),
 		&gorm.Config{},
@@ -76,7 +78,7 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().
+	rootCmd.PersistentFlags().
 		StringP("database", "d", cliConstants.dbFile, "The database to use")
 
 }

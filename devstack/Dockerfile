@@ -6,6 +6,6 @@ COPY . /app
 
 RUN go get .
 
-RUN go build -o /app/app .
+# RUN go build -o /app/app .
 
-CMD /app/app server --port 80
+CMD go build -o /app/bin/ .

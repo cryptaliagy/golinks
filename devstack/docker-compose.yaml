@@ -9,6 +9,6 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ../confs:/app/confs
+      - ../:/app
     env_file:
       - ../.env
