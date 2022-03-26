@@ -6,7 +6,7 @@ import dotenv
 dotenv.load_dotenv()
 
 BASE_URL = 'http://localhost'
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('GOLINKS_SECRET_KEY')
 HEADERS = {'Authorization': f'Bearer {SECRET_KEY}'}
 
 

@@ -59,11 +59,12 @@ var serverCmd = &cobra.Command{
 		r.GET("/heartbeat", heartbeat)
 		r.GET("/:link", doRedirect)
 		r.GET("/which/:link", getLink)
-		r.GET("/all", getAllRoutes)
 
 		private := r.Group("/route")
 		private.Use(Authentication)
 		{
+
+			private.GET("/all", getAllRoutes)
 			private.POST("/:link", addRouteToMap)
 			private.DELETE("/:link", deleteRoute)
 			private.PUT("/:link", updateRoute)
