@@ -77,7 +77,7 @@ func (s *SQLiteServerConfig) RemoveRoute(link string) error {
 }
 
 func (s *SQLiteServerConfig) ClearRoutes() error {
-	s.Database.Delete(&Link{}).Commit()
+	s.Database.Where("1 == 1").Delete(&Link{}).Commit()
 
 	var links []Link
 	s.Database.Find(&links)
