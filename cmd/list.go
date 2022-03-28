@@ -18,14 +18,15 @@ var listCmd = &cobra.Command{
 
 	This does not require that the server be running.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		routes := allRoutes()
-		if len(routes) == 0 {
-			log.Println("No routes found")
-			return
-		}
+
+		db := makeProvider(cmd)
+
 		log.Println("Listing routes:")
-		for tag, route := range allRoutes() {
-			log.Println("\t", tag, ":\t", route)
+
+		routes := db.GetAllRoutes()
+
+		for tag, route := range routes {
+			log.Println("\t", tag+":", route)
 		}
 	},
 }

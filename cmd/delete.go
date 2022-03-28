@@ -18,12 +18,16 @@ var deleteCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Println("Deleting tag", args[0])
-		err := removeRoute(args[0])
+
+		db := makeProvider(cmd)
+
+		err := db.RemoveRoute(args[0])
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Failed to delete route")
 		} else {
-			log.Println("Tag deleted successfully")
+			log.Println("Route deleted successfully")
 		}
+
 	},
 }
 

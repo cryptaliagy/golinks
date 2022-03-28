@@ -22,12 +22,14 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Args: cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Println("Updating tag", args[0], "with route", args[1])
-		err := updateLink(args[0], args[1])
+		db := makeProvider(cmd)
+
+		log.Println("Updating route:", args[0], args[1])
+		err := db.UpdateRoute(args[0], args[1])
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Failed to update route")
 		} else {
-			log.Println("Tag updated successfully")
+			log.Println("Route updated successfully")
 		}
 	},
 }

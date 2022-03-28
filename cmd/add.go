@@ -20,8 +20,11 @@ var addCmd = &cobra.Command{
 	Args: cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Flags().Parse(args)
+
+		db := makeProvider(cmd)
+
 		log.Println("Adding route:", args[0], args[1])
-		err := addRoute(args[0], args[1])
+		err := db.AddRoute(args[0], args[1])
 		if err != nil {
 			log.Fatal("Failed to add route")
 		} else {

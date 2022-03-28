@@ -19,12 +19,12 @@ var clearCmd = &cobra.Command{
 	This does not require that the server be running.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Println("Clearing routes:")
-		for tag, route := range allRoutes() {
-			log.Println("\t", tag, ":\t", route)
-		}
-		err := clearRoutes()
+
+		db := makeProvider(cmd)
+
+		err := db.ClearRoutes()
 		if err != nil {
-			log.Println("Error clearing routes:", err)
+			log.Fatal("Failed to clear routes")
 		} else {
 			log.Println("Routes cleared successfully")
 		}
