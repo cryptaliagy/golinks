@@ -139,7 +139,7 @@ func getAllRoutes(c *gin.Context) {
 func addRoute(c *gin.Context) {
 	link := c.Param("link")
 
-	json := struct{ url string }{}
+	json := Payload{}
 
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -149,7 +149,7 @@ func addRoute(c *gin.Context) {
 		return
 	}
 
-	url := json.url
+	url := json.Url
 	if url == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "url not specified",
@@ -206,7 +206,7 @@ func updateRoute(c *gin.Context) {
 		return
 	}
 
-	json := struct{ url string }{}
+	json := Payload{}
 
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -216,7 +216,7 @@ func updateRoute(c *gin.Context) {
 		return
 	}
 
-	url := json.url
+	url := json.Url
 	if url == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "url not specified",

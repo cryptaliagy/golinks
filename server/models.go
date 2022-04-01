@@ -10,6 +10,10 @@ type Link struct {
 	Tag string `json:"tag"`
 }
 
+type Payload struct {
+	Url string `json:"url"`
+}
+
 type ServerConfig struct {
 	Port     string
 	Key      string

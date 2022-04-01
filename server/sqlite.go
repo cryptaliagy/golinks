@@ -95,6 +95,12 @@ func (s *SQLiteServerConfig) AddRoute(link string, url string) error {
 		Tag: link,
 	}
 
+	searchLink := Link{}
+
+	if s.Database.Where("tag = ?", link).First(&searchLink); searchLink.ID != 0 {
+		return errors.New("Link already exists")
+	}
+
 	s.Database.Create(&linkToAdd).Commit()
 
 	return nil
