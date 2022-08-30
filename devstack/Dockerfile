@@ -1,4 +1,4 @@
-FROM golang:latest
+FROM golang:latest as build
 
 WORKDIR /app
 
@@ -6,6 +6,14 @@ COPY . /app
 
 RUN go get .
 
-# RUN go build -o /app/app .
+RUN GOOS=linux CGO_ENABLED=0 go build -o /app/app .
 
-CMD go build -o /app/bin/ .
+CMD go run . server
+
+FROM debian:10-slim as runner
+
+WORKDIR /app
+
+COPY --from=build /app/app /app/app
+
+CMD ["/app/app", "server", "--port", "80"]
