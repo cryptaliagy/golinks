@@ -6,10 +6,10 @@ services:
       context: ..
       dockerfile: devstack/Dockerfile
       target: ${TARGET:-build}
-    image: ${REGISTRY}golinks:${VERSION:-latest}
+    image: golinks:${VERSION:-latest}
     ports:
       - "80:80"
     volumes:
       - ../:/app
-    env_file:
-      - ../.env
+    environment:
+      - PORT=80

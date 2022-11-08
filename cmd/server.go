@@ -1,6 +1,5 @@
 /*
 Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
@@ -10,6 +9,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/taliamax/golinks/server"
 )
 
@@ -21,22 +21,22 @@ var serverCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Flags().Parse(args)
 
-		godotenv.Load(cmd.Flag("env-file").Value.String())
+		if cmd.Flag("env-file").Value.String() != "" {
+			godotenv.Load(cmd.Flag("env-file").Value.String())
+		}
+
 		config := server.ServerConfig{
-			Port:    cmd.Flag("port").Value.String(),
-			IsDebug: cmd.Flag("debug").Value.String() == "true",
+			Port:    viper.GetString("port"),
+			IsDebug: viper.GetBool("debug"),
 			Key:     os.Getenv("GOLINKS_SECRET_KEY"),
 		}
 
-		dbFile, err := cmd.Flags().GetString("database")
-
-		if err != nil {
-			log.Fatal(err)
-		}
+		dbFile := viper.GetString("database")
 
 		engine := server.InitSQLiteServer(&config, dbFile)
 
 		log.Println("Starting server on port:", config.Port)
+		log.Println("Using database:", dbFile)
 
 		engine.Run(":" + config.Port)
 	},
@@ -53,13 +53,6 @@ func init() {
 		Flags().
 		BoolP("debug", "d", false, "debug mode")
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// serverCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// serverCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	viper.BindPFlag("port", serverCmd.Flags().Lookup("port"))
+	viper.BindPFlag("debug", serverCmd.Flags().Lookup("debug"))
 }

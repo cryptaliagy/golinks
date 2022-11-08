@@ -1,13 +1,14 @@
 /*
 Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/taliamax/golinks/server"
 )
 
@@ -30,6 +31,8 @@ to quickly create a Cobra application.`,
 func Execute() {
 	rootCmd.ParseFlags(os.Args)
 
+	fmt.Println("Text")
+
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
@@ -45,12 +48,15 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
+	viper.AutomaticEnv()
+
 	rootCmd.PersistentFlags().
 		String("database", "links.db", "The database to use")
 
 	rootCmd.PersistentFlags().
 		StringP("env-file", "e", "", "path to .env file")
 
+	viper.BindPFlag("database", rootCmd.PersistentFlags().Lookup("database"))
 }
 
 func makeProvider(cmd *cobra.Command) server.DatabaseProvider {
