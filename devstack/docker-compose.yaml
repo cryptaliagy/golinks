@@ -6,7 +6,7 @@ services:
       context: ..
       dockerfile: devstack/Dockerfile
       target: ${TARGET:-build}
-    image: golinks:${VERSION:-latest}
+    image: taliamax/golinks:${VERSION:-latest}
     ports:
       - "80:80"
     volumes:

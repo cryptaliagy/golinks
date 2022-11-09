@@ -1,0 +1,72 @@
+# Default values for golinks.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: taliamax/golinks
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: latest
+  debug: false
+
+volume:
+  name: golinks
+  mountPath: data
+  subPath: ""
+  storage: {}
+
+database:
+  persist: true
+  fileName: "links.db"
+
+auth:
+  ## @param existingSecret Name of existing secret to use for authenticating when adding new routes to deployed app
+  existingSecret: ""
+  ## @param apiAuthorizationKey Name of the key in existing secret to use for api authorization
+  apiAuthorizationKey: ""
+  ## @param secretKey Value to set the secret key to. If not set, one will be generated.
+  secretKey: ""
+
+## @param commonLabels Add labels to all the deployed resources
+##
+commonLabels:
+  app: golinks
+## @param commonAnnotations Add annotations to all the deployed resources
+##
+commonAnnotations:
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 80
+  annotations: {}
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
