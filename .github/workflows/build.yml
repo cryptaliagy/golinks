@@ -32,4 +32,4 @@ jobs:
           file: devstack/Dockerfile
           push: true
           target: runner
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest,${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:1.${{ github.run_number }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest,${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:1.0.${{ github.run_number }}
