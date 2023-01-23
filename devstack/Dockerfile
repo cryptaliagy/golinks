@@ -8,14 +8,12 @@ RUN go mod download
 
 COPY . /app
 
-RUN GOOS=linux go build -o /app/app .
+RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s -extldflags=-static" -tags sqlite_omit_load_extension -o /app/app
 
 CMD ["go", "run", ".", "server"]
 
-FROM debian:10-slim as runner
+FROM scratch as runner
 
-WORKDIR /app
+COPY --from=build /app/app /app
 
-COPY --from=build /app/app /app/app
-
-CMD ["/app/app", "server", "--debug"]
+ENTRYPOINT ["/app", "server"]
