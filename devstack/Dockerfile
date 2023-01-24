@@ -1,19 +1,25 @@
-FROM golang:latest as build
+FROM rust:1.66.1 as builder
+
+RUN rustup target add x86_64-unknown-linux-musl
 
 WORKDIR /app
 
-COPY go.mod go.sum /app/
+COPY Cargo.toml Cargo.lock ./
 
-RUN go mod download
+RUN mkdir src && echo "fn main() {}" > src/main.rs && cargo build --target x86_64-unknown-linux-musl --release
 
-COPY . /app
+COPY src ./src
 
-RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s -extldflags=-static" -tags sqlite_omit_load_extension -o /app/app
+RUN cargo build --release --target x86_64-unknown-linux-musl
 
-CMD ["go", "run", ".", "server"]
+CMD ["./target/x86_64-unknown-linux-musl/release/golinks"]
 
 FROM scratch as runner
 
-COPY --from=build /app/app /app
+COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/golinks /golinks
 
-ENTRYPOINT ["/app", "server"]
+ENV ROCKET_ADDRESS 0.0.0.0
+ENV ROCKET_PORT 8000
+ENV ROCKET_IDENT false
+
+CMD ["/golinks"]

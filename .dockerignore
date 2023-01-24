@@ -4,4 +4,4 @@ devstack
 .gitignore
 README.md
 justfile
-client.py
+conf
