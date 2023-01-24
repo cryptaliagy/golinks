@@ -1,5 +1,9 @@
 FROM rust:1.66.1 as builder
 
+ENV ROCKET_ADDRESS 0.0.0.0
+ENV ROCKET_PORT 8000
+ENV ROCKET_IDENT false
+
 RUN rustup target add x86_64-unknown-linux-musl
 
 WORKDIR /app
