@@ -28,8 +28,7 @@ bin/
 __pycache__/
 *.pyc
 
-golinks
-chart/charts
+charts/**/charts
 
 # Added by cargo
 
