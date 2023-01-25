@@ -26,14 +26,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push the runner container
-        uses: docker/build-push-action@v3
-        with:
-          file: devstack/Dockerfile
-          push: true
-          target: runner
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest,${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:1.1.${{ github.run_number }}
-
       - name: Push the debug container
         uses: docker/build-push-action@v3
         with:
@@ -42,11 +34,19 @@ jobs:
           target: debug
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:debug,${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:1.1.${{ github.run_number }}-debug
 
+      - name: Push the runner container
+        uses: docker/build-push-action@v3
+        with:
+          file: devstack/Dockerfile
+          push: true
+          target: runner
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest,${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:1.1.${{ github.run_number }}
+
       - name: Publish Helm chart
         uses: stefanprodan/helm-gh-pages@v1.7.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          charts_dir: chart
+          charts_dir: charts
           target_dir: charts
           linting: off
           app_version: 1.1.${{ github.run_number }}
