@@ -47,5 +47,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           charts_dir: chart
+          target_dir: charts
+          linting: off
           app_version: 1.1.${{ github.run_number }}
           chart_version: 0.2.${{ github.run_number}}
