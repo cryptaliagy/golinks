@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: routes-config
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "golinks.labels" . | nindent 4 }}
+data:
+  routes.yaml: |-
+    routes:
+      {{- toYaml .Values.routes | nindent 6 -}}

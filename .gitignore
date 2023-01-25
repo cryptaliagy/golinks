@@ -30,3 +30,8 @@ __pycache__/
 
 golinks
 chart/charts
+
+# Added by cargo
+
+/target
+conf/
