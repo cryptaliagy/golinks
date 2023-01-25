@@ -38,10 +38,12 @@ fn link(link: &str, routes: &State<Routes>) -> Option<Redirect> {
 }
 
 fn build_rocket(routes: Routes, enable_profiling: bool) -> Rocket<Build> {
+    let ship = rocket::build();
+
     let ship = if enable_profiling {
-        rocket::build().attach(RequestTimer {})
+        ship.attach(RequestTimer::new())
     } else {
-        rocket::build()
+        ship
     };
 
     ship.manage(routes)

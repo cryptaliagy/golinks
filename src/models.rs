@@ -10,7 +10,9 @@ use rocket::{Data, Request, Response};
 use crate::utils;
 
 /// Fairing for timing requests.
-pub struct RequestTimer;
+pub struct RequestTimer {
+    date_format: String,
+}
 
 /// Value stored in request-local state.
 #[derive(Copy, Clone)]
@@ -31,11 +33,24 @@ pub struct Routes {
     routes: HashMap<String, String>,
 }
 
-/// Methods for `Routes`
 impl Routes {
     /// Fetches the URL for a given link.
     pub fn fetch(&self, link: &str) -> Option<String> {
         self.routes.get(link).map(|url| url.clone())
+    }
+}
+
+impl RequestTimer {
+    /// Creates a new `RequestTimer`.
+    pub fn new() -> Self {
+        Self {
+            date_format: "%Y-%m-%d - %H:%M:%S".to_string(),
+        }
+    }
+
+    /// Gets the current time as a string in the configured format.
+    pub fn now(&self) -> String {
+        Utc::now().format(&self.date_format).to_string()
     }
 }
 
@@ -62,7 +77,7 @@ impl Fairing for RequestTimer {
         if let Some(Ok(duration)) = start_time.0.map(|st| st.elapsed()) {
             println!(
                 "{time} | {method:^7} | {duration:>12} | {status} | \"{uri}\"",
-                time = Utc::now().format("%Y-%m-%d - %H:%M:%S"),
+                time = self.now(),
                 method = req.method(),
                 uri = req.uri(),
                 duration = utils::format_duration(duration),
