@@ -5,29 +5,19 @@
 replicaCount: 1
 
 image:
-  repository: taliamax/golinks
+  repository: ghcr.io/taliamax/golinks
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: latest
-  debug: false
 
-volume:
-  name: golinks
-  mountPath: data
-  subPath: ""
-  storage: {}
+golinks:
+  enableProfiling: false
+  logLevel: critical
 
-database:
-  persist: true
-  fileName: "links.db"
-
-auth:
-  ## @param existingSecret Name of existing secret to use for authenticating when adding new routes to deployed app
-  existingSecret: ""
-  ## @param apiAuthorizationKey Name of the key in existing secret to use for api authorization
-  apiAuthorizationKey: ""
-  ## @param secretKey Value to set the secret key to. If not set, one will be generated.
-  secretKey: ""
+routes:
+  google: https://google.com
+  github: https://github.com
+  golinks: https://github.com/taliamax/golinks
 
 ## @param commonLabels Add labels to all the deployed resources
 ##

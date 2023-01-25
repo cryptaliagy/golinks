@@ -31,21 +31,19 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-            - name: PORT
+            - name: ROCKET_PORT
               value: "{{ .Values.service.port }}"
-            {{- if  .Values.image.debug }}
-            - name: DEBUG
+            - name: ROCKET_LOG_LEVEL
+              value: "{{ .Values.golinks.logLevel }}"
+            {{- if  .Values.golinks.enableProfiling }}
+            - name: GOLINKS_PROFILING
               value: "1"
             {{- end }}
-            - name: GOLINKS_SECRET_KEY
-              valuesFrom:
-                secretKeyRef:
-                  name: {{ include "golinks.secretName" . }}
-                  {{- if not .Values.auth.existingSecret }}
-                  key: secret-key
-                  {{- else }}
-                  key: {{ .Values.auth.secretKey }}
-                  {{- end }}
+            - name: GOLINKS_ROUTES
+              value: "/etc/golinks/routes.yaml"
+          volumeMounts:
+            - name: routes
+              mountPath: /etc/golinks
           ports:
             - name: http
               containerPort: 80
@@ -60,19 +58,10 @@ spec:
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- if .Values.database.persist }}
-          volumeMounts:
-            - mountPath: {{ .Values.volume.mountPath }}
-              name: {{ .Values.volume.name }}
-              {{- if .Values.volume.subPath }}
-              subPath: {{ .Values.volume.subPath }}
-              {{- end }}
-          {{- end }}
-      {{- if .Values.database.persist }}
       volumes:
-        - name: {{ .Values.volume.name }}
-          {{- toYaml .Values.volume.storage | nindent 10 }}
-      {{- end }}
+        - name: routes
+          configMap:
+            name: routes-config
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

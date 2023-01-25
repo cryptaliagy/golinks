@@ -53,14 +53,21 @@ fn build_rocket(routes: Routes, enable_profiling: bool) -> Rocket<Build> {
 
 #[launch]
 fn rocket() -> _ {
+    println!("Application startup...");
     let enable_profiling = env::var("GOLINKS_PROFILING").unwrap_or("false".to_string()) != "false";
     let links_file = env::var("GOLINKS_ROUTES").unwrap_or("links.yaml".to_string());
 
     let config_file =
         fs::File::open(&links_file).expect(format!("Unable to open {}", &links_file).as_str());
 
+    println!(
+        "Finished reading routes from {}. Parsing into routes object...",
+        &links_file
+    );
+
     let routes: Routes = serde_yaml::from_reader(config_file)
         .expect(format!("Unable to parse {}", &links_file).as_str());
 
+    println!("Finished parsing routes. Starting server...");
     build_rocket(routes, enable_profiling)
 }

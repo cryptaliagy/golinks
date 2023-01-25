@@ -32,4 +32,12 @@ jobs:
           file: devstack/Dockerfile
           push: true
           target: runner
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest,${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:1.0.${{ github.run_number }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest,${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:1.1.${{ github.run_number }}
+
+      - name: Push the debug container
+        uses: docker/build-push-action@v3
+        with:
+          file: devstack/Dockerfile
+          push: true
+          target: debug
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:debug,${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:1.0.${{ github.run_number }}-debug
