@@ -30,14 +30,6 @@ fn heartbeat() -> Json<StatusMessage> {
     })
 }
 
-/// Handles paths that have a single component.
-#[get("/<link>")]
-fn link(link: &str, routes: &State<Routes>) -> Option<Redirect> {
-    fetch_link(link, routes)
-}
-
-/// Handles paths that have multiple components. This is done as a separate
-/// function so that single-component paths can be handled more efficiently.
 #[get("/<path..>")]
 fn path(path: PathBuf, routes: &State<Routes>) -> Option<Redirect> {
     fetch_link(path.to_str().unwrap(), routes)
@@ -60,7 +52,7 @@ fn build_rocket(routes: Routes, enable_profiling: bool) -> Rocket<Build> {
     };
 
     ship.manage(routes)
-        .mount("/", routes![heartbeat, link, path])
+        .mount("/", routes![heartbeat, path])
         .register("/", catchers![not_found])
 }
 
