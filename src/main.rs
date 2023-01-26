@@ -6,6 +6,7 @@ extern crate rocket;
 
 use std::env;
 use std::fs;
+use std::path::PathBuf;
 
 use rocket::response::Redirect;
 use rocket::serde::json::Json;
@@ -29,8 +30,20 @@ fn heartbeat() -> Json<StatusMessage> {
     })
 }
 
+/// Handles paths that have a single component.
 #[get("/<link>")]
 fn link(link: &str, routes: &State<Routes>) -> Option<Redirect> {
+    fetch_link(link, routes)
+}
+
+/// Handles paths that have multiple components. This is done as a separate
+/// function so that single-component paths can be handled more efficiently.
+#[get("/<path..>")]
+fn path(path: PathBuf, routes: &State<Routes>) -> Option<Redirect> {
+    fetch_link(path.to_str().unwrap(), routes)
+}
+
+fn fetch_link(link: &str, routes: &State<Routes>) -> Option<Redirect> {
     routes
         .inner()
         .fetch(link)
@@ -47,7 +60,7 @@ fn build_rocket(routes: Routes, enable_profiling: bool) -> Rocket<Build> {
     };
 
     ship.manage(routes)
-        .mount("/", routes![heartbeat, link])
+        .mount("/", routes![heartbeat, link, path])
         .register("/", catchers![not_found])
 }
 
