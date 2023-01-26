@@ -10,9 +10,12 @@ WORKDIR /app
 
 COPY Cargo.toml Cargo.lock ./
 
-RUN mkdir src && echo "fn main() {}" > src/main.rs && cargo build --target x86_64-unknown-linux-musl --release && rm src/main.rs
+RUN mkdir src && echo "fn main() {}" > src/main.rs \
+    && cargo build --target x86_64-unknown-linux-musl --release \
+    && rm src/main.rs \
+    && rm -rf target/x86_64-unknown-linux-musl/release/deps/golinks*
 
-COPY src ./
+COPY . .
 
 RUN cargo build --release --target x86_64-unknown-linux-musl
 
