@@ -49,7 +49,7 @@ helm install golinks/golinks
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
-  name: eraser
+  name: golinks
   namespace: charts
 spec:
   chart: golinks
