@@ -36,10 +36,7 @@ fn path(path: PathBuf, routes: &State<Routes>) -> Option<Redirect> {
 }
 
 fn fetch_link(link: &str, routes: &State<Routes>) -> Option<Redirect> {
-    routes
-        .inner()
-        .fetch(link)
-        .map(|url| Redirect::temporary(url))
+    routes.inner().fetch(link).map(Redirect::temporary)
 }
 
 fn build_rocket(routes: Routes, enable_profiling: bool) -> Rocket<Build> {
@@ -59,11 +56,12 @@ fn build_rocket(routes: Routes, enable_profiling: bool) -> Rocket<Build> {
 #[launch]
 fn rocket() -> _ {
     println!("Application startup...");
-    let enable_profiling = env::var("GOLINKS_PROFILING").unwrap_or("false".to_string()) != "false";
-    let links_file = env::var("GOLINKS_ROUTES").unwrap_or("links.yaml".to_string());
+    let enable_profiling =
+        env::var("GOLINKS_PROFILING").unwrap_or_else(|_| "false".to_string()) != "false";
+    let links_file = env::var("GOLINKS_ROUTES").unwrap_or_else(|_| "links.yaml".to_string());
 
     let config_file =
-        fs::File::open(&links_file).expect(format!("Unable to open {}", &links_file).as_str());
+        fs::File::open(&links_file).unwrap_or_else(|_| panic!("Unable to open {}", &links_file));
 
     println!(
         "Finished reading routes from {}. Parsing into routes object...",
@@ -71,7 +69,7 @@ fn rocket() -> _ {
     );
 
     let routes: Routes = serde_yaml::from_reader(config_file)
-        .expect(format!("Unable to parse {}", &links_file).as_str());
+        .unwrap_or_else(|_| panic!("Unable to parse {}", &links_file));
 
     println!("Finished parsing routes. Starting server...");
     build_rocket(routes, enable_profiling)
@@ -82,30 +80,56 @@ mod tests {
     use crate::models::Routes;
 
     use std::collections::HashMap;
+    use std::time::Duration;
 
     use rocket::http::{ContentType, Status};
-    use rocket::local::blocking::Client;
+    use rocket::local::blocking::{Client, LocalResponse};
     use rocket::{Build, Rocket};
 
-    fn scaffold_rocket() -> Rocket<Build> {
+    fn scaffold_rocket(enable_profiling: bool) -> Rocket<Build> {
         let route_map = HashMap::from([
             ("test".to_string(), "https://example.com".to_string()),
             ("e/x".to_string(), "https://example.com".to_string()),
         ]);
         let routes = Routes::with_routes(route_map);
 
-        crate::build_rocket(routes, false)
+        crate::build_rocket(routes, enable_profiling)
     }
 
-    fn scaffold_client() -> Client {
-        Client::tracked(scaffold_rocket()).expect("valid rocket instance")
+    fn scaffold_client(enable_profiling: bool) -> Client {
+        Client::tracked(scaffold_rocket(enable_profiling)).expect("valid rocket instance")
+    }
+
+    fn duration_from_response(response: &LocalResponse<'_>) -> Duration {
+        // Parse the header in form of "X-Request-Duration: 12.34 <unit>"
+        // where <unit> is either "s", "ms" or "µs" into a Duration.
+        // If the unit is ms or µs, the numeric value is less than 1000.
+        let duration_header = response.headers().get_one("X-Request-Duration").unwrap();
+        let duration = duration_header
+            .split_whitespace()
+            .next()
+            .unwrap()
+            .split_terminator('.') // Ignore the decimal part
+            .next()
+            .unwrap()
+            .parse::<u64>()
+            .unwrap();
+
+        let unit = duration_header.split_whitespace().last().unwrap();
+
+        match unit {
+            "s" => std::time::Duration::from_secs(duration),
+            "ms" => std::time::Duration::from_millis(duration),
+            "μs" => std::time::Duration::from_micros(duration),
+            _ => panic!("Unknown unit {}", unit),
+        }
     }
 
     /// Test that the heartbeat endpoint returns a 200 status code and a JSON
     /// response.
     #[test]
     fn test_heartbeat() {
-        let client = scaffold_client();
+        let client = scaffold_client(false);
         let response = client.get("/heartbeat").dispatch();
 
         assert_eq!(response.status(), Status::Ok);
@@ -120,7 +144,7 @@ mod tests {
     /// header with the correct value.
     #[test]
     fn test_path_single() {
-        let client = scaffold_client();
+        let client = scaffold_client(false);
         let response = client.get("/test").dispatch();
 
         assert_eq!(response.status(), Status::TemporaryRedirect);
@@ -135,7 +159,7 @@ mod tests {
     /// header with the correct value.
     #[test]
     fn test_path_multi() {
-        let client = scaffold_client();
+        let client = scaffold_client(false);
         let response = client.get("/e/x").dispatch();
 
         assert_eq!(response.status(), Status::TemporaryRedirect);
@@ -149,7 +173,7 @@ mod tests {
     /// JSON response.
     #[test]
     fn test_path_not_found() {
-        let client = scaffold_client();
+        let client = scaffold_client(false);
         let response = client.get("/not-found").dispatch();
 
         assert_eq!(response.status(), Status::NotFound);
@@ -157,5 +181,22 @@ mod tests {
             response.content_type(),
             Some(ContentType::new("application", "json"))
         );
+    }
+
+    /// Test that a request returns a header with the duration of the request if
+    /// profiling is enabled, and that the .
+    #[test]
+    fn test_profiling() {
+        let client = scaffold_client(true);
+        let response = client.get("/heartbeat").dispatch();
+
+        let max_duration = std::time::Duration::from_micros(500);
+
+        assert_eq!(response.status(), Status::Ok);
+        assert!(response.headers().get_one("X-Request-Duration").is_some());
+
+        let duration = duration_from_response(&response);
+
+        assert!(duration < max_duration);
     }
 }
