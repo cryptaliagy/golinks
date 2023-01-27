@@ -1,0 +1,41 @@
+name: pr
+
+on:
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install rust tool chain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+          target: x86_64-unknown-linux-musl
+
+      - name: Lint the code
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run the security audit check, ignoring known issue that is not relevant for this project
+        uses: actions-rs/cargo@v1
+        with:
+          command: audit
+          args: --ignore RUSTSEC-2020-0071
+
+      - name: Run the tests with the static target
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --release --target x86_64-unknown-linux-musl
