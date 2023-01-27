@@ -39,9 +39,3 @@ jobs:
         with:
           command: test
           args: --release --target x86_64-unknown-linux-musl
-
-      - name: Build the binary with static target
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --target x86_64-unknown-linux-musl
