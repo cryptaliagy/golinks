@@ -19,6 +19,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Install rust tool chain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Lint the code
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run the tests with the static target
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --release --target x86_64-unknown-linux-musl
+
+      - name: Build the binary with static target
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --target x86_64-unknown-linux-musl
+
       - name: Log in to the Container registry
         uses: docker/login-action@v2
         with:

@@ -4,6 +4,7 @@ use std::time::SystemTime;
 use chrono::Utc;
 
 use rocket::fairing::{Fairing, Info, Kind};
+use rocket::http::Header;
 use rocket::serde::{Deserialize, Serialize};
 use rocket::{Data, Request, Response};
 
@@ -36,10 +37,11 @@ pub struct Routes {
 impl Routes {
     /// Fetches the URL for a given link.
     pub fn fetch(&self, link: &str) -> Option<String> {
-        self.routes.get(link).map(|url| url.clone())
+        self.routes.get(link).cloned()
     }
 
     /// Creates a new `Routes` from an existing `HashMap`.
+    #[allow(dead_code)]
     pub fn with_routes(routes: HashMap<String, String>) -> Self {
         Self { routes }
     }
@@ -80,14 +82,17 @@ impl Fairing for RequestTimer {
     async fn on_response<'r>(&self, req: &'r Request<'_>, res: &mut Response<'r>) {
         let start_time = req.local_cache(|| TimerStart(None));
         if let Some(Ok(duration)) = start_time.0.map(|st| st.elapsed()) {
+            let formatted = utils::format_duration(duration);
             println!(
                 "{time} | {method:^7} | {duration:>12} | {status} | \"{uri}\"",
                 time = self.now(),
                 method = req.method(),
                 uri = req.uri(),
-                duration = utils::format_duration(duration),
+                duration = formatted,
                 status = res.status().code,
             );
+
+            res.set_header(Header::new("X-Request-Duration", formatted));
         }
     }
 }
