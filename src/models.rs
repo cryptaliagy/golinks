@@ -38,6 +38,11 @@ impl Routes {
     pub fn fetch(&self, link: &str) -> Option<String> {
         self.routes.get(link).map(|url| url.clone())
     }
+
+    /// Creates a new `Routes` from an existing `HashMap`.
+    pub fn with_routes(routes: HashMap<String, String>) -> Self {
+        Self { routes }
+    }
 }
 
 impl RequestTimer {

@@ -76,3 +76,86 @@ fn rocket() -> _ {
     println!("Finished parsing routes. Starting server...");
     build_rocket(routes, enable_profiling)
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::models::Routes;
+
+    use std::collections::HashMap;
+
+    use rocket::http::{ContentType, Status};
+    use rocket::local::blocking::Client;
+    use rocket::{Build, Rocket};
+
+    fn scaffold_rocket() -> Rocket<Build> {
+        let route_map = HashMap::from([
+            ("test".to_string(), "https://example.com".to_string()),
+            ("e/x".to_string(), "https://example.com".to_string()),
+        ]);
+        let routes = Routes::with_routes(route_map);
+
+        crate::build_rocket(routes, false)
+    }
+
+    fn scaffold_client() -> Client {
+        Client::tracked(scaffold_rocket()).expect("valid rocket instance")
+    }
+
+    /// Test that the heartbeat endpoint returns a 200 status code and a JSON
+    /// response.
+    #[test]
+    fn test_heartbeat() {
+        let client = scaffold_client();
+        let response = client.get("/heartbeat").dispatch();
+
+        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(
+            response.content_type(),
+            Some(ContentType::new("application", "json"))
+        );
+    }
+
+    /// Test that some registered path with a single path element
+    /// returns a 307 status code and a Location
+    /// header with the correct value.
+    #[test]
+    fn test_path_single() {
+        let client = scaffold_client();
+        let response = client.get("/test").dispatch();
+
+        assert_eq!(response.status(), Status::TemporaryRedirect);
+        assert_eq!(
+            response.headers().get_one("Location"),
+            Some("https://example.com")
+        );
+    }
+
+    /// Test that some registered path with multiple path elements
+    /// returns a 307 status code and a Location
+    /// header with the correct value.
+    #[test]
+    fn test_path_multi() {
+        let client = scaffold_client();
+        let response = client.get("/e/x").dispatch();
+
+        assert_eq!(response.status(), Status::TemporaryRedirect);
+        assert_eq!(
+            response.headers().get_one("Location"),
+            Some("https://example.com")
+        );
+    }
+
+    /// Test that a path that is not registered returns a 404 status code and a
+    /// JSON response.
+    #[test]
+    fn test_path_not_found() {
+        let client = scaffold_client();
+        let response = client.get("/not-found").dispatch();
+
+        assert_eq!(response.status(), Status::NotFound);
+        assert_eq!(
+            response.content_type(),
+            Some(ContentType::new("application", "json"))
+        );
+    }
+}
