@@ -2,6 +2,22 @@ apiVersion: v1
 entries:
   golinks:
   - apiVersion: v2
+    appVersion: 1.1.20
+    created: "2023-02-07T17:38:41.482824915Z"
+    dependencies:
+    - name: common
+      repository: https://charts.bitnami.com/bitnami
+      tags:
+      - bitnami-common
+      version: 2.x.x
+    description: A Helm chart for Kubernetes
+    digest: 23d4ecc372851b8d610e098dd3f104ff2ce027778ae901d40b5af1dd9211e4af
+    name: golinks
+    type: application
+    urls:
+    - https://taliamax.github.io/golinks/charts/golinks-0.2.20.tgz
+    version: 0.2.20
+  - apiVersion: v2
     appVersion: 1.1.19
     created: "2023-01-27T15:56:12.022652092Z"
     dependencies:
@@ -129,4 +145,4 @@ entries:
     urls:
     - https://taliamax.github.io/golinks/charts/golinks-0.2.8.tgz
     version: 0.2.8
-generated: "2023-01-27T15:56:12.020532923Z"
+generated: "2023-02-07T17:38:41.480293417Z"
