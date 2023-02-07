@@ -6,7 +6,7 @@ extern crate rocket;
 
 use std::env;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use rocket::response::Redirect;
 use rocket::serde::json::Json;
@@ -31,12 +31,27 @@ fn heartbeat() -> Json<StatusMessage> {
 }
 
 #[get("/<path..>")]
-fn path(path: PathBuf, routes: &State<Routes>) -> Option<Redirect> {
-    fetch_link(path.to_str().unwrap(), routes)
-}
+fn path(path: PathBuf, routes_map: &State<Routes>) -> Option<Redirect> {
+    let mut current = Some(path.as_path());
 
-fn fetch_link(link: &str, routes: &State<Routes>) -> Option<Redirect> {
-    routes.inner().fetch(link).map(Redirect::temporary)
+    while current.is_some() {
+        let forward = routes_map.fetch(current?.to_str().unwrap());
+
+        if forward.is_some() {
+            let afterimage = path.strip_prefix(current.unwrap()).unwrap();
+
+            let afterimage = if afterimage == Path::new("") {
+                afterimage.to_str().unwrap().to_string()
+            } else {
+                format!("/{}", afterimage.to_str().unwrap())
+            };
+
+            return forward.map(|x| x + &afterimage).map(Redirect::temporary);
+        }
+        current = current?.parent();
+    }
+
+    None
 }
 
 fn build_rocket(routes: Routes, enable_profiling: bool) -> Rocket<Build> {
@@ -90,6 +105,7 @@ mod tests {
         let route_map = HashMap::from([
             ("test".to_string(), "https://example.com".to_string()),
             ("e/x".to_string(), "https://example.com".to_string()),
+            ("e".to_string(), "https://differentexample.com".to_string()),
         ]);
         let routes = Routes::with_routes(route_map);
 
@@ -169,12 +185,63 @@ mod tests {
         );
     }
 
+    /// Test that accessing some descendant of a registered path
+    /// redirects you to that path + the added route information. i.e.
+    /// if /e/x is registered as https://example.com/, then /e/x/ample
+    /// should redirect to https://example.com/ample
+    #[test]
+    fn test_registered_ancestor() {
+        let client = scaffold_client(false);
+        let response = client.get("/e/x/ample").dispatch();
+
+        assert_eq!(response.status(), Status::TemporaryRedirect);
+        assert_eq!(
+            response.headers().get_one("Location"),
+            Some("https://example.com/ample")
+        );
+    }
+
+    /// Test that precedence is done by finding the first matching ancestor path
+    #[test]
+    fn test_first_registered_ancestor() {
+        let client = scaffold_client(false);
+        let response = client.get("/e/l/ample").dispatch();
+
+        assert_eq!(response.status(), Status::TemporaryRedirect);
+        assert_eq!(
+            response.headers().get_one("Location"),
+            Some("https://differentexample.com/l/ample")
+        );
+
+        let response = client.get("/e/x/ample").dispatch();
+
+        assert_eq!(response.status(), Status::TemporaryRedirect);
+        assert_eq!(
+            response.headers().get_one("Location"),
+            Some("https://example.com/ample")
+        );
+    }
+
     /// Test that a path that is not registered returns a 404 status code and a
     /// JSON response.
     #[test]
     fn test_path_not_found() {
         let client = scaffold_client(false);
         let response = client.get("/not-found").dispatch();
+
+        assert_eq!(response.status(), Status::NotFound);
+        assert_eq!(
+            response.content_type(),
+            Some(ContentType::new("application", "json"))
+        );
+    }
+
+    /// Test that a multipath that is not registered returns a 404 status code and a
+    /// JSON response.
+    #[test]
+    fn test_multipath_not_found() {
+        let client = scaffold_client(false);
+        let response = client.get("/not/found/at/all").dispatch();
 
         assert_eq!(response.status(), Status::NotFound);
         assert_eq!(
