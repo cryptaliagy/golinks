@@ -6,6 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-chrono = "0.4.23"
+chrono = { version = "0.4.23", default-features = false, features = ["std", "clock"] }
 rocket = { version = "0.5.0-rc.2", features = ["json"] }
 serde_yaml = "0.9.17"
