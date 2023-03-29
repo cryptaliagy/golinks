@@ -3,10 +3,13 @@ name: build
 on:
   push:
     branches: [master]
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  VERSION: 1.1.${{ github.run_number }}
+  CHART_VERSION: 0.2.${{ github.run_number}}
 
 jobs:
   build-and-push-image:
@@ -32,7 +35,7 @@ jobs:
           file: devstack/Dockerfile
           push: true
           target: debug
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:debug,${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:1.1.${{ github.run_number }}-debug
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:debug,${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}-debug
 
       - name: Push the runner container
         uses: docker/build-push-action@v3
@@ -40,7 +43,7 @@ jobs:
           file: devstack/Dockerfile
           push: true
           target: runner
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest,${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:1.1.${{ github.run_number }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest,${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
 
       - name: Publish Helm chart
         uses: stefanprodan/helm-gh-pages@v1.7.0
@@ -49,5 +52,5 @@ jobs:
           charts_dir: charts
           target_dir: charts
           linting: off
-          app_version: 1.1.${{ github.run_number }}
-          chart_version: 0.2.${{ github.run_number}}
+          app_version: ${{ env.VERSION }}
+          chart_version: ${{ env.CHART_VERSION }}
