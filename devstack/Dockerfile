@@ -21,7 +21,11 @@ RUN cargo build --release --target x86_64-unknown-linux-musl
 
 CMD ["./target/x86_64-unknown-linux-musl/release/golinks"]
 
-FROM alpine:latest as debug
+FROM alpine:latest as patched
+
+RUN apk update && apk upgrade --no-cache
+
+FROM patched as debug
 
 COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/golinks /golinks
 
