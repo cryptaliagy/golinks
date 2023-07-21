@@ -8,6 +8,7 @@ use rocket::http::Header;
 use rocket::serde::{Deserialize, Serialize};
 use rocket::{Data, Request, Response};
 
+use crate::config::AppConfig;
 use crate::utils;
 
 /// Fairing for timing requests.
@@ -49,9 +50,9 @@ impl Routes {
 
 impl RequestTimer {
     /// Creates a new `RequestTimer`.
-    pub fn new() -> Self {
+    pub fn new(configs: &AppConfig) -> Self {
         Self {
-            date_format: "%Y-%m-%d - %H:%M:%S".to_string(),
+            date_format: configs.time_format().to_string(),
         }
     }
 
