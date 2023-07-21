@@ -5,12 +5,15 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use fern::colors::{Color, ColoredLevelConfig};
-use log::{debug, info};
+use log::{debug, error, info};
 
 use rocket::fairing::AdHoc;
 use rocket::response::Redirect;
 use rocket::serde::json::Json;
 use rocket::{Build, Request, Rocket, State};
+use tokio::sync::mpsc::{channel, Receiver, Sender};
+
+use notify::{Event, RecommendedWatcher, Watcher};
 
 use golinks::config::AppConfig;
 use golinks::models::{RequestTimer, Routes, StatusMessage};
@@ -81,7 +84,7 @@ fn build_rocket(configs: AppConfig, registered_routes: Routes) -> Rocket<Build> 
     // last ones to be executed.
     let ship = if configs.profiling_enabled() {
         debug!("Profiling enabled! Attaching fairing...");
-        ship.attach(RequestTimer::new(&configs))
+        ship.attach(RequestTimer::default())
     } else {
         ship
     };
@@ -122,19 +125,83 @@ fn build_rocket(configs: AppConfig, registered_routes: Routes) -> Rocket<Build> 
     .register("/", catchers![not_found])
 }
 
-/// This compiles down to the main function of the application using the #[launch] macro.
-/// It creates the configuration from the environment, then uses that to construct the web
-/// server.
-#[launch]
-async fn rocket() -> _ {
+async fn create_rocket_from(configs: AppConfig) -> Rocket<Build> {
+    info!("Building routes...");
+    let links_file = configs.links_file();
+    let config_file =
+        fs::File::open(links_file).unwrap_or_else(|_| panic!("Unable to open {}", links_file));
+
+    debug!("Finished reading data from {}, parsing...", links_file);
+
+    let routes: Routes = serde_yaml::from_reader(config_file)
+        .unwrap_or_else(|_| panic!("Unable to parse {}", links_file));
+
+    debug!("Finished parsing {}", links_file);
+    let ship = build_rocket(configs.clone(), routes);
+
+    info!("Rocket build complete!");
+    ship
+}
+
+fn async_watcher() -> notify::Result<(RecommendedWatcher, Receiver<Event>)> {
+    let (tx, rx) = channel(1);
+
+    // Automatically select the best implementation for your platform.
+    // You can also access each implementation directly e.g. INotifyWatcher.
+    let watcher = RecommendedWatcher::new(
+        move |res: notify::Result<Event>| {
+            if let Ok(event) = res {
+                debug!("Received event: {:?}", event);
+                if event.kind.is_modify() && !tx.is_closed() {
+                    tx.blocking_send(event).unwrap_or_else(|err| {
+                        error!("Could not send event: {}", err);
+                    });
+                }
+            }
+        },
+        notify::Config::default().with_compare_contents(true),
+    )?;
+
+    Ok((watcher, rx))
+}
+
+async fn shutdown_on_event(shutdown: rocket::Shutdown, configs: AppConfig, tx: Sender<bool>) {
+    let (mut watcher, mut rx) = async_watcher().unwrap();
+
+    info!(
+        "File watching is enabled! Watching {} for changes...",
+        configs.links_file()
+    );
+
+    if configs.watch() {
+        watcher
+            .watch(
+                Path::new(configs.links_file()),
+                notify::RecursiveMode::NonRecursive,
+            )
+            .unwrap_or_else(|_| error!("Could not watch links file"));
+
+        if let Some(event) = rx.recv().await {
+            debug!("Received shutdown event: {:?}", event);
+            info!("Links file changed! Requesting shutdown...");
+            // Notify the main thread that we should reload
+            tx.send(true).await.unwrap();
+
+            shutdown.notify();
+        }
+    }
+}
+
+#[rocket::main]
+async fn main() {
     #[cfg(debug_assertions)]
     println!("Building configuration...");
-    let config = AppConfig::build().expect("Could not build configuration from environment");
+    let configs = AppConfig::build().expect("Could not build configuration from environment");
 
     #[cfg(debug_assertions)]
     println!("Building logger...");
 
-    let date_fmt: String = config.time_format().to_string();
+    let date_fmt: String = configs.time_format().to_string();
 
     let colors = ColoredLevelConfig::new()
         .debug(Color::Cyan)
@@ -152,10 +219,10 @@ async fn rocket() -> _ {
                 message,
             ))
         })
-        .level(config.level())
+        .level(configs.level())
         .chain(std::io::stdout());
 
-    if !config.log_all() {
+    if !configs.log_all() {
         log_config = log_config.filter(|metadata| metadata.target().starts_with("golinks"))
     }
 
@@ -163,21 +230,51 @@ async fn rocket() -> _ {
 
     debug!("Logger configuration finished!");
 
-    info!("Building routes...");
-    let links_file = config.links_file();
-    let config_file =
-        fs::File::open(links_file).unwrap_or_else(|_| panic!("Unable to open {}", links_file));
+    loop {
+        let configs = configs.clone();
 
-    info!("Finished reading data from {}, parsing...", links_file);
+        println!(
+            r#"
+  _____       _      _       _        
+ / ____|     | |    (_)     | |       
+| |  __  ___ | |     _ _ __ | | _____ 
+| | |_ |/ _ \| |    | | '_ \| |/ / __|
+| |__| | (_) | |____| | | | |   <\__ \
+ \_____|\___/|______|_|_| |_|_|\_\___/
+ ==================================================                                     
+        "#
+        );
 
-    let routes: Routes = serde_yaml::from_reader(config_file)
-        .unwrap_or_else(|_| panic!("Unable to parse {}", links_file));
+        info!("Initializing application...");
+        let ship = create_rocket_from(configs.clone())
+            .await
+            .ignite()
+            .await
+            .unwrap();
 
-    info!("Finished parsing {}", links_file);
-    let ship = build_rocket(config, routes);
+        let shutdown = ship.shutdown();
 
-    info!("Rocket build complete!");
-    ship
+        let (tx, mut rx) = channel(1);
+
+        let watcher_task = rocket::tokio::spawn(async move {
+            shutdown_on_event(shutdown, configs, tx).await;
+        });
+
+        ship.launch().await.unwrap();
+
+        // We send the reload signal before the shutdown one,
+        // so if the reload receiver is empty we know that
+        // it was not because of changes to the links file
+        if rx.try_recv().is_err() {
+            break;
+        }
+
+        debug!("Shutting down watcher...");
+        watcher_task.abort();
+        info!("Requesting service reload...\n\n\n")
+    }
+
+    info!("Service 'golinks' successfully shut down");
 }
 
 #[cfg(test)]

@@ -39,6 +39,10 @@ spec:
             - name: GOLINKS_PROFILING
               value: "1"
             {{- end }}
+            {{- if .Values.golinks.watchFileChanges }}
+            - name: GOLINKS_WATCH
+              value: "1"
+            {{- end }}
             - name: GOLINKS_ROUTES
               value: "/etc/golinks/routes.yaml"
           volumeMounts:

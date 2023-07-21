@@ -19,6 +19,9 @@ pub struct AppConfig {
 
     #[serde(default = "_default_links_file")]
     routes: String,
+
+    #[serde(default = "_default_false")]
+    watch: bool,
 }
 
 impl AppConfig {
@@ -34,6 +37,13 @@ impl AppConfig {
     /// enabled or not.
     pub fn profiling_enabled(&self) -> bool {
         self.profiling
+    }
+
+    /// Gets a value indicating whether the application
+    /// should watch the links file for changes and reload
+    /// the routes when it does.
+    pub fn watch(&self) -> bool {
+        self.watch
     }
 
     /// Sets the flag to enable/disable profiling

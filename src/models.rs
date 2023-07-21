@@ -1,20 +1,17 @@
 use std::collections::HashMap;
 use std::time::SystemTime;
 
-use chrono::Utc;
-
+use log::info;
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::http::Header;
 use rocket::serde::{Deserialize, Serialize};
 use rocket::{Data, Request, Response};
 
-use crate::config::AppConfig;
 use crate::utils;
 
 /// Fairing for timing requests.
-pub struct RequestTimer {
-    date_format: String,
-}
+#[derive(Default)]
+pub struct RequestTimer {}
 
 /// Value stored in request-local state.
 #[derive(Copy, Clone)]
@@ -48,20 +45,6 @@ impl Routes {
     }
 }
 
-impl RequestTimer {
-    /// Creates a new `RequestTimer`.
-    pub fn new(configs: &AppConfig) -> Self {
-        Self {
-            date_format: configs.time_format().to_string(),
-        }
-    }
-
-    /// Gets the current time as a string in the configured format.
-    pub fn now(&self) -> String {
-        Utc::now().format(&self.date_format).to_string()
-    }
-}
-
 #[rocket::async_trait]
 impl Fairing for RequestTimer {
     fn info(&self) -> Info {
@@ -84,9 +67,8 @@ impl Fairing for RequestTimer {
         let start_time = req.local_cache(|| TimerStart(None));
         if let Some(Ok(duration)) = start_time.0.map(|st| st.elapsed()) {
             let formatted = utils::format_duration(duration);
-            println!(
-                "{time} | {method:^7} | {duration:>12} | {status} | \"{uri}\"",
-                time = self.now(),
+            info!(
+                "{method:^7} | {duration:>12} | {status} | \"{uri}\"",
                 method = req.method(),
                 uri = req.uri(),
                 duration = formatted,
