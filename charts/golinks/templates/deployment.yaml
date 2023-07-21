@@ -53,13 +53,17 @@ spec:
               containerPort: 80
               protocol: TCP
           livenessProbe:
-            httpGet:
-              path: /heartbeat
-              port: http
+            exec:
+              command:
+                - /healthcheck
+            initialDelaySeconds: 5
+            periodSeconds: 30
           readinessProbe:
-            httpGet:
-              path: /heartbeat
-              port: http
+            exec:
+              command:
+                - /healthcheck
+            initialDelaySeconds: 5
+            periodSeconds: 30
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:

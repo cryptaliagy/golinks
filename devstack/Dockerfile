@@ -40,7 +40,7 @@ CMD ["./out/golinks"]
 FROM dev as builder
 
 # Use a statically linked target for the prod target
-RUN cargo build -p websvc --release --target $(arch)-unknown-linux-musl
+RUN cargo build -p golinks --release --target $(arch)-unknown-linux-musl
 
 # We want the health check to be minimal and statically linked
 RUN cargo build -p healthcheck --release --target $(arch)-unknown-linux-musl
@@ -48,7 +48,7 @@ RUN cargo build -p healthcheck --release --target $(arch)-unknown-linux-musl
 # Coalesce all the compiled binaries into a final directory for each output
 # so it's easier to copy in the next stage
 RUN mkdir ./bin && \
-    mv ./target/$(arch)-unknown-linux-musl/release/websvc \
+    mv ./target/$(arch)-unknown-linux-musl/release/golinks \
     ./target/$(arch)-unknown-linux-musl/release/healthcheck  ./bin
 
 # Prevent reading+writing to the binaries, making them execute-only
@@ -59,9 +59,7 @@ FROM alpine:latest as patched
 RUN apk update && apk upgrade --no-cache
 
 # Create a debug container with things like a shell and package manager for additional
-# tools. This could be used to debug the prod binary.
-# An additional candidate could be mcr.microsoft.com/cbl-mariner/distroless/debug:2.0, but
-# when this was created I was getting `trivy` vuln flags for that image.
+# tools.
 FROM patched as debug
 
 COPY --from=builder /app/bin/ /
@@ -74,7 +72,7 @@ USER 1000:1000
 
 HEALTHCHECK --interval=30s --timeout=30s --start-period=2s --retries=3 CMD [ "/healthcheck" ]
 
-CMD ["/websvc"]
+CMD ["/golinks"]
 
 # Another candidate base could be mcr.microsoft.com/cbl-mariner/distroless/minimal:2.0 which
 # provides filesystem, tzdata, and prebuilt-ca-certificates.

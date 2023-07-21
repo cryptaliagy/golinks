@@ -168,12 +168,12 @@ fn async_watcher() -> notify::Result<(RecommendedWatcher, Receiver<Event>)> {
 async fn shutdown_on_event(shutdown: rocket::Shutdown, configs: AppConfig, tx: Sender<bool>) {
     let (mut watcher, mut rx) = async_watcher().unwrap();
 
-    info!(
-        "File watching is enabled! Watching {} for changes...",
-        configs.links_file()
-    );
-
     if configs.watch() {
+        info!(
+            "File watching is enabled! Watching {} for changes...",
+            configs.links_file()
+        );
+
         watcher
             .watch(
                 Path::new(configs.links_file()),
