@@ -7,5 +7,21 @@ edition = "2021"
 
 [dependencies]
 chrono = { version = "0.4.23", default-features = false, features = ["std", "clock"] }
+config = { version = "0.13.3", default-features = false }
 rocket = { version = "0.5.0-rc.2", features = ["json"] }
+fern = { version = "0.6.2", features = ["colored"] }
+log = { version = "0.4.19", features = ["std"] }
+serde = "1.0.171"
 serde_yaml = "0.9.17"
+notify = "6.0.1"
+tokio = { version = "1.29.1", features = ["rt"] }
+notify-debouncer-mini = "0.3.0"
+
+[dev-dependencies]
+serial_test = "2.0.0"
+
+[profile.release]
+strip = true
+
+[workspace]
+members = ["healthcheck"]

@@ -13,6 +13,11 @@ image:
 golinks:
   enableProfiling: false
   logLevel: critical
+  # Set this to true if you want the service to restart itself
+  # when the configmap changes. While this is a fast operation,
+  # it does not guarantee zero downtime. For high-traffic scenarios,
+  # using `kubectl rollout restart` might be more appropriate.
+  watchFileChanges: false
 
 routes:
   google: https://google.com

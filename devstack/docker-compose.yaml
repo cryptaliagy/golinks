@@ -1,4 +1,4 @@
-version: '3.9'
+version: "3.9"
 
 services:
   golinks:
@@ -16,3 +16,4 @@ services:
       - GOLINKS_PROFILING=1
       - ROCKET_LOG_LEVEL=normal
       - GOLINKS_ROUTES=/app/conf/routes.yaml
+      - GOLINKS_WATCH=true
