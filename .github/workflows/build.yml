@@ -42,7 +42,7 @@ jobs:
         with:
           file: devstack/Dockerfile
           push: true
-          target: runner
+          target: prod
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest,${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
 
       - name: Publish Helm chart
