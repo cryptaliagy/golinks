@@ -20,7 +20,7 @@ Since the application now uses a `ConfigMap` to deploy to a cluster, I am able t
 
 ```yaml
 routes:
-  golinks: https://github.com/taliamax/golinks
+  golinks: https://github.com/cryptaliagy/golinks
   google: https://google.com
   github: https://github.com
 ```
@@ -28,14 +28,14 @@ routes:
 ## Quickstart (Docker)
 
 1. Create a `conf` directory and write a `links.yaml` file in it (see above for example).
-1. Pull the container with `docker pull ghcr.io/taliamax/golinks:latest`
-1. Run the container with `docker run -e GOLINKS_ROUTES=/conf/links.yaml ROCKET_LOG_LEVEL=normal -v "$(pwd)"/conf:/conf -p 8000:8000 ghcr.io/taliamax/golinks:latest`
+1. Pull the container with `docker pull ghcr.io/cryptaliagy/golinks:latest`
+1. Run the container with `docker run -e GOLINKS_ROUTES=/conf/links.yaml ROCKET_LOG_LEVEL=normal -v "$(pwd)"/conf:/conf -p 8000:8000 ghcr.io/cryptaliagy/golinks:latest`
 1. Go to `localhost:8000/heartbeat` and see the JSON output
 
 ## Installation (Helm)
 
 ```bash
-helm repo add golinks https://taliamax.github.io/golinks/charts
+helm repo add golinks https://cryptaliagy.github.io/golinks/charts
 helm repo update
 helm install golinks/golinks
 ```
@@ -53,11 +53,11 @@ metadata:
   namespace: charts
 spec:
   chart: golinks
-  repo: https://taliamax.github.io/golinks/charts
+  repo: https://cryptaliagy.github.io/golinks/charts
   targetNamespace: golinks
   valuesContent: |-
     routes:
-      golinks: https://github.com/taliamax/golinks
+      golinks: https://github.com/cryptaliagy/golinks
       google: https://google.com
 ```
 
@@ -66,7 +66,7 @@ spec:
 Generate a manifest from Helm
 
 ```bash
-helm template --repo https://taliamax.github.io/golinks/charts golinks -g > golinks.yaml
+helm template --repo https://cryptaliagy.github.io/golinks/charts golinks -g > golinks.yaml
 ```
 
 Edit it as desired then apply it to the cluster
@@ -86,7 +86,7 @@ The final container image size is <10MB and uses an image based on `scratch` wit
 If you would like to deploy this to a cloud service and do not have the ability to mount a file (or otherwise would like the container to be fully atomic), you can build your own image that includes the route configs. To do this, first author a `links.yaml` file, then use the following Dockerfile:
 
 ```Dockerfile
-FROM ghcr.io/taliamax/golinks:latest
+FROM ghcr.io/cryptaliagy/golinks:latest
 
 COPY links.yaml /links.yaml
 ```

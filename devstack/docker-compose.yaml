@@ -6,7 +6,7 @@ services:
       context: ..
       dockerfile: devstack/Dockerfile
       target: ${TARGET:-builder}
-    image: ghcr.io/taliamax/golinks:${VERSION:-latest}
+    image: ghcr.io/cryptaliagy/golinks:${VERSION:-latest}
     ports:
       - "80:80"
     volumes:
