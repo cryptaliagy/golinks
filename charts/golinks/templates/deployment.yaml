@@ -53,15 +53,15 @@ spec:
               containerPort: 80
               protocol: TCP
           livenessProbe:
-            exec:
-              command:
-                - /healthcheck
+            httpGet:
+              path: /heartbeat
+              port: http
             initialDelaySeconds: 5
             periodSeconds: 30
           readinessProbe:
-            exec:
-              command:
-                - /healthcheck
+            httpGet:
+              path: /heartbeat
+              port: http
             initialDelaySeconds: 5
             periodSeconds: 30
           resources:
