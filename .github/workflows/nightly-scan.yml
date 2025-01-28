@@ -23,6 +23,9 @@ jobs:
           toolchain: stable
           components: rustfmt, clippy
 
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
+
       - name: Run the security scanner
         run: cargo audit
 

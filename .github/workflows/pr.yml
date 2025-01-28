@@ -23,6 +23,9 @@ jobs:
           components: rustfmt, clippy
           target: x86_64-unknown-linux-musl
 
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
+
       - name: Lint the code
         run: cargo clippy
 
